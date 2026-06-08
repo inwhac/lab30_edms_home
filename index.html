@@ -1908,7 +1908,7 @@
 #page-dashboard .c-ctrl.del:hover{ background:#fdecea; color:var(--up); border-color:#f5c6c2; }
 #page-dashboard .c-titlewrap{ display:inline-flex; align-items:center; gap:9px; }
 #page-dashboard .c-basis{ font-size:11.5px; color:var(--muted); font-weight:500; white-space:nowrap; }
-#page-dashboard.editing .c-basis{ display:none; }
+#page-dashboard.editing .c-basis{ display:inline; }
 #page-dashboard .c-detail{ font-size:inherit; line-height:1; color:var(--ink); font-weight:700; cursor:pointer; margin-left:5px; }
 #page-dashboard .c-detail:hover{ color:var(--blue); }
 
@@ -1970,8 +1970,8 @@
 /* 선 그래프: SVG는 선/점만, 텍스트는 HTML 오버레이(고정 폰트) */
 #page-dashboard .line-box{ position:relative; width:100%; height:150px; }
 #page-dashboard .line-svg{ position:absolute; inset:0 0 22px 0; width:100%; height:calc(100% - 22px); display:block; }
-#page-dashboard .line-overlay{ position:absolute; inset:0 0 22px 0; }
-#page-dashboard .line-overlay .lp{ position:absolute; transform:translate(-50%,-50%); }
+#page-dashboard .line-overlay{ position:absolute; inset:0 0 22px 0; pointer-events:none; }
+#page-dashboard .line-overlay .lp{ position:absolute; transform:translate(-50%,-50%); pointer-events:all; }
 #page-dashboard .line-overlay .lp-dot{ position:absolute; left:50%; top:50%; width:6px; height:6px; border-radius:50%; background:var(--blue); transform:translate(-50%,-50%); transition:width .12s,height .12s; }
 #page-dashboard .line-overlay .lp-dot-last{ width:8px; height:8px; }
 #page-dashboard .line-overlay .lp:hover .lp-dot{ width:9px; height:9px; }
@@ -2045,6 +2045,36 @@
 
   /* ── 대시보드 전용 빌드: 다른 페이지 숨김 ── */
   .page-section:not(#page-dashboard) { display: none !important; }
+
+  /* ── 임직원/접속 현황 멀티 시리즈 ── */
+  .emp-kpi { flex-wrap: wrap; gap: 6px; }
+  .emp-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+  .emp-multi-bars { display:flex; align-items:flex-end; gap:6px; height:120px; padding:0 4px; }
+  .emp-bar-stack { border-radius:3px 3px 0 0; min-height:3px; display:inline-block; transition:opacity .15s; }
+  .emp-bar-stack:hover { opacity:.75; }
+  .emp-legend { display:flex; flex-wrap:wrap; gap:8px 14px; margin-top:8px; padding:0 2px; }
+  .emp-leg { display:flex; align-items:center; font-size:11px; color:var(--muted); gap:4px; }
+  .bar-wrap { display:flex; align-items:flex-end; gap:2px; height:100%; }
+  /* 가로 막대 (단일 수치 L 보완) */
+  .h-bars { display:flex; flex-direction:column; gap:8px; padding:4px 0; }
+  .h-bar-row { display:flex; align-items:center; gap:8px; font-size:12px; }
+  .h-bar-lbl { width:64px; color:var(--muted); flex-shrink:0; text-align:right; font-size:11px; }
+  .h-bar-track { flex:1; height:10px; background:#e8f0fe; border-radius:5px; overflow:hidden; }
+  .h-bar-fill { height:100%; background:#1a73e8; border-radius:5px; transition:width .3s; }
+  .h-bar-val { width:40px; color:var(--fg); font-size:11px; flex-shrink:0; }
+  /* emp 단일 수치 타일 */
+  .emp-kpi-tiles { display:grid; gap:1px; width:100%; height:100%; background:#f0f4f8; border-radius:8px; overflow:hidden; }
+  .emp-kpi-tile { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px; padding:20px 12px; background:#fff; }
+  .emp-kpi-tile-lbl { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); font-weight:500; }
+  .emp-kpi-tile-val { font-size:36px; font-weight:800; color:var(--ink); letter-spacing:-1px; line-height:1; }
+  .emp-kpi-tile-unit { font-size:16px; font-weight:600; color:var(--muted); margin-left:2px; }
+  .emp-stack-seg:hover { opacity:.75; }
+  /* emp 툴팁 */
+  .emp-svg-tip { position:fixed; background:rgba(30,45,64,.88); color:#fff; font-size:11px; padding:4px 8px; border-radius:5px; pointer-events:none; white-space:nowrap; opacity:0; transition:opacity .12s; z-index:9999; }
+  .emp-svg-tip.on { opacity:1; }
+  /* emp line box */
+  .emp-line-box { position:relative; }
+  .emp-line-box .line-svg { pointer-events:all; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -2349,6 +2379,8 @@
     <div class="field">
       <div class="field-label">주요 지표 선택 <span class="field-hint">· 그래프로 볼 지표 1개</span></div>
       <div class="chips" id="domainChips">
+        <span class="chip" data-d="employee">임직원 현황</span>
+        <span class="chip" data-d="access">접속 현황</span>
         <span class="chip" data-d="apply">신청 수</span>
         <span class="chip" data-d="study">학습자 수</span>
         <span class="chip" data-d="result">수료율</span>
@@ -11318,37 +11350,63 @@ var DOMAIN={
     extras:['courses','total','paidApply','freeApply','perhead'],
     defaults:['courses','total'],
     defPeriod:'당월'
+  },
+  employee:{
+    label:'임직원 현황',
+    mains:['empTotal'],
+    extras:['empTotal','empNew','empActive'],
+    defaults:['empTotal','empNew','empActive'],
+    defPeriod:'당월'
+  },
+  access:{
+    label:'접속 현황',
+    mains:['empLogin'],
+    extras:['empLogin','empNoLogin','empPc','empMobile'],
+    defaults:['empLogin','empNoLogin','empPc','empMobile'],
+    defPeriod:'당월'
   }
 };
 // 전체 지표 라벨·단위·값 (영역 공통 풀)
-var LABEL={total:'학습자 수',courses:'과정 수',rate:'수료율',apply:'신청 수',fee:'교육비',completed:'수료자 수',perhead:'1인당 교육비'};
+var LABEL={total:'학습자 수',courses:'과정 수',rate:'수료율',apply:'신청 수',fee:'교육비',completed:'수료자 수',perhead:'1인당 교육비',empTotal:'임직원 현황',empLogin:'접속 현황'};
 // 상위 타이틀 아이콘 (채워진 컬러 아이콘 · 종이+연필/책 톤)
 var TITLE_ICON={
   apply:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 3h8l4 4v6.5l-2 2V8h-4V4H5v16h6l-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="#5b9bf3"/><path d="M13 3l4 4h-4V3z" fill="#9cc3f8"/><path d="M20.7 11.3l1 1a1 1 0 0 1 0 1.4l-6.1 6.1-2.6.6.6-2.6 6.1-6.1a1 1 0 0 1 1.4 0z" fill="#f4b740"/><path d="M19.3 12.7l1.4 1.4-5.2 5.2-1.4-1.4z" fill="#ffd479"/></svg>',
   study:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 6C9.5 4.5 6 4.3 3.5 5.2v13C6 17.3 9.5 17.5 12 19V6z" fill="#5b9bf3"/><path d="M12 6c2.5-1.5 6-1.7 8.5-.8v13C18 17.3 14.5 17.5 12 19V6z" fill="#9cc3f8"/><path d="M12 6v13" stroke="#1a73e8" stroke-width="1.2"/></svg>',
   result:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3L1.5 8 12 13l10.5-5L12 3z" fill="#5b9bf3"/><path d="M5 11v4.2c0 1.6 3.1 2.8 7 2.8s7-1.2 7-2.8V11l-7 3.3L5 11z" fill="#9cc3f8"/><path d="M21.5 8.2v5.3" stroke="#f4b740" stroke-width="1.6" stroke-linecap="round"/><circle cx="21.5" cy="14.4" r="1.2" fill="#f4b740"/></svg>',
-  cost:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="9" cy="9" r="6" fill="#ffd479"/><circle cx="9" cy="9" r="6" fill="none" stroke="#f4b740" stroke-width="1.2"/><path d="M9 5.5v7M6.5 7.5h5M6.5 10h5" stroke="#b8860b" stroke-width="1.1" stroke-linecap="round"/><circle cx="15" cy="15" r="6" fill="#5b9bf3"/><path d="M15 11.5v7M12.5 13.5h5M12.5 16h5" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg>'
+  cost:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="9" cy="9" r="6" fill="#ffd479"/><circle cx="9" cy="9" r="6" fill="none" stroke="#f4b740" stroke-width="1.2"/><path d="M9 5.5v7M6.5 7.5h5M6.5 10h5" stroke="#b8860b" stroke-width="1.1" stroke-linecap="round"/><circle cx="15" cy="15" r="6" fill="#5b9bf3"/><path d="M15 11.5v7M12.5 13.5h5M12.5 16h5" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg>',
+  employee:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="9" cy="7" r="3.2" fill="#5b9bf3"/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="#9cc3f8"/><circle cx="17" cy="8" r="2.4" fill="#f4b740"/><path d="M13.5 19c0-2.5 1.6-4.6 3.8-5.4" stroke="#ffd479" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>',
+  access:'<svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="5" width="18" height="13" rx="2" fill="#9cc3f8"/><rect x="3" y="5" width="18" height="9" rx="2" fill="#5b9bf3"/><circle cx="17" cy="9" r="2.5" fill="#ffd479" stroke="#f4b740" stroke-width="1"/><path d="M14.5 9h-8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><path d="M9 18l3-1h0l3 1" stroke="#9cc3f8" stroke-width="1.2" fill="none"/></svg>'
 };
 var SHORT={total:'총 학습자',courses:'총 과정',rate:'수료율',apply:'총 신청',fee:'총 교육비',perhead:'1인당 교육비',
   yejung:'예정',doing:'학습중',done:'종료',completed:'수료',misuryo:'미수료',before:'수료처리전',
   approved:'승인',waiting:'승인대기',canceled:'취소',paid:'입금완료',paywait:'입금대기',paycancel:'입금취소',
-  paidApply:'유료 학습자',freeApply:'무료 학습자'};
+  paidApply:'유료 학습자',freeApply:'무료 학습자',
+  empTotal:'전체 임직원',empNew:'신규 등록',empActive:'재직',
+  empLogin:'로그인',empNoLogin:'미로그인',empPc:'PC 접속',empMobile:'모바일 접속',empPatternDay:'요일별 패턴',empPatternHour:'시간대별 패턴'};
 var UNIT={total:'명',courses:'개',rate:'%',apply:'건',fee:'원',perhead:'원',
   yejung:'명',doing:'명',done:'명',completed:'명',misuryo:'명',before:'명',
   approved:'건',waiting:'건',canceled:'건',paid:'건',paywait:'건',paycancel:'건',
-  paidApply:'명',freeApply:'명'};
+  paidApply:'명',freeApply:'명',
+  empTotal:'명',empNew:'명',empActive:'명',
+  empLogin:'명',empNoLogin:'명',empPc:'명',empMobile:'명',empPatternDay:'-',empPatternHour:'-'};
 var VAL={total:'2,040',courses:'55',rate:'86.7',apply:'1,284',fee:'32,450,000',perhead:'15,907',
   yejung:'180',doing:'1,240',done:'620',completed:'520',misuryo:'80',before:'20',
   approved:'1,042',waiting:'86',canceled:'156',paid:'980',paywait:'120',paycancel:'42',
-  paidApply:'1,560',freeApply:'480'};
+  paidApply:'1,560',freeApply:'480',
+  empTotal:'348',empNew:'36',empActive:'312',
+  empLogin:'268',empNoLogin:'80',empPc:'214',empMobile:'54',empPatternDay:'-',empPatternHour:'-'};
 var CMP={total:'▲ +5.8%',courses:'▲ +3개',rate:'▲ +1.8%p',apply:'▲ +9.2%',fee:'▲ +7.5%',perhead:'▼ -1,200원',
   yejung:'▲ +12명',doing:'▲ +6.2%',done:'▲ +28명',completed:'▲ +34명',misuryo:'▼ -6명',before:'▼ -4명',
   approved:'▲ +8.1%',waiting:'▲ +12건',canceled:'▲ +18건',paid:'▲ +6.4%',paywait:'▼ -8건',paycancel:'▲ +5건',
-  paidApply:'▲ +7.2%',freeApply:'▲ +12.4%'};
+  paidApply:'▲ +7.2%',freeApply:'▲ +12.4%',
+  empTotal:'▲ +12명',empNew:'▲ +3명',empActive:'▲ +9명',
+  empLogin:'▲ +18명',empNoLogin:'▼ -6명',empPc:'▲ +14명',empMobile:'▲ +4명',empPatternDay:'-',empPatternHour:'-'};
 var CMPUP={total:true,courses:true,rate:true,apply:true,fee:true,perhead:true,
   yejung:true,doing:true,done:true,completed:true,misuryo:false,before:false,
   approved:true,waiting:true,canceled:false,paid:true,paywait:true,paycancel:false,
-  paidApply:true,freeApply:true};
+  paidApply:true,freeApply:true,
+  empTotal:true,empNew:true,empActive:true,
+  empLogin:true,empNoLogin:false,empPc:true,empMobile:true,empPatternDay:true,empPatternHour:true};
 
 // 그룹화 → 자동 그래프
 function decideGraph(group, main){
@@ -11383,7 +11441,165 @@ var DEFAULT=[
 var comps=JSON.parse(JSON.stringify(DEFAULT));
 var editing=false, editIndex=-1;
 
+// ── 임직원/접속 현황 전용: 멀티 시리즈 그래프 ──────────────────
+var EMP_COLORS=['#1a73e8','#f4b740','#34a853','#ea4335','#9b59b6','#00bcd4'];
+var EMP_GROUP_DATA={
+  period:{labels:['6월','7월','8월','9월','10월','11월','12월','1월','2월','3월','4월','5월']},
+  dept:{labels:['개발본부','영업본부','경영지원','마케팅','인사','재무','전략기획']},
+  company:{labels:['본사','계열사A','계열사B']},
+  position:{labels:['사원','대리','과장','차장','부장','임원']}
+};
+// 지표별 시리즈 샘플 데이터 (그룹별 분포 비율 기준으로 실제값 환산)
+var EMP_RATIOS={
+  empTotal: {period:[280,292,305,310,318,312,308,320,325,335,342,348], dept:[.31,.26,.15,.10,.08,.06,.04], company:[.64,.26,.10], position:[.42,.29,.17,.07,.03,.02]},
+  empNew:   {period:[12,14,15,15,16,14,14,14,15,15,34,36], dept:[.31,.26,.15,.10,.08,.06,.04], company:[.64,.26,.10], position:[.42,.29,.17,.07,.03,.02]},
+  empActive:{period:[268,278,290,295,302,298,294,306,310,320,308,312], dept:[.31,.26,.15,.10,.08,.06,.04], company:[.64,.26,.10], position:[.42,.29,.17,.07,.03,.02]},
+  empLogin: {period:[180,198,210,225,240,218,190,235,220,248,256,268], dept:[.28,.25,.18,.12,.09,.05,.03], company:[.62,.28,.10], position:[.38,.28,.18,.09,.05,.02]},
+  empNoLogin:{period:[100,94,95,85,78,94,118,85,105,87,86,80], dept:[.36,.28,.12,.08,.07,.06,.03], company:[.67,.22,.11], position:[.48,.30,.12,.05,.03,.02]},
+  empPc:    {period:[140,155,162,172,183,168,148,182,172,196,204,214], dept:[.30,.26,.16,.10,.09,.06,.03], company:[.63,.27,.10], position:[.38,.29,.18,.08,.05,.02]},
+  empMobile:{period:[40,43,48,53,57,50,42,53,48,52,52,54], dept:[.28,.24,.18,.12,.09,.06,.03], company:[.60,.28,.12], position:[.42,.28,.16,.08,.04,.02]}
+};
+function empSeriesVals(key, view){
+  var r=EMP_RATIOS[key]; if(!r) return [];
+  var base=parseFloat((VAL[key]||'0').replace(/,/g,''));
+  if(view==='period'){
+    return r.period.slice();
+  }
+  var ratios=r[view]||r.dept;
+  return ratios.map(function(rt){ return Math.round(base*rt); });
+}
+function compInnerEmp(c){
+  var keys=((c.extras&&c.extras.length)?c.extras:[c.main]);
+  var view=c.view||'period';
+  var isL=(c.size==='l');
+  var isEmployee=(c.domain==='employee');
+
+  // KPI 수치 영역
+  var kpiItems=keys.map(function(k,i){
+    return '<div class="kpi"><div class="k-l"><span class="emp-dot" style="background:'+EMP_COLORS[i%EMP_COLORS.length]+'"></span>'+SHORT[k]+'</div>'+
+      '<div class="k-v">'+VAL[k]+'<span class="u">'+UNIT[k]+'</span></div></div>';
+  }).join('');
+  var kpiZone='<div class="kpibar emp-kpi">'+kpiItems+'</div>';
+
+  // 단일 수치: 임직원 현황 / 접속 현황 공통 — 선택한 지표를 크게 표시
+  if(view==='none'){
+    var cols=isL?4:2; // L: 최대 4열, M: 2열
+    var tileItems=keys.map(function(k,i){
+      return '<div class="emp-kpi-tile">'+
+        '<div class="emp-kpi-tile-lbl"><span class="emp-dot" style="background:'+EMP_COLORS[i%EMP_COLORS.length]+'"></span>'+SHORT[k]+'</div>'+
+        '<div class="emp-kpi-tile-val">'+VAL[k]+'<span class="emp-kpi-tile-unit">'+UNIT[k]+'</span></div>'+
+      '</div>';
+    }).join('');
+    return '<div class="c-col"><div class="emp-kpi-tiles" style="grid-template-columns:repeat('+cols+',1fr)">'+tileItems+'</div></div>';
+  }
+
+  var gd=EMP_GROUP_DATA[view]||EMP_GROUP_DATA.period;
+  var labels=gd.labels;
+  var EMP_ORDER=['empTotal','empActive','empNew','empLogin','empNoLogin','empPc','empMobile'];
+  var orderedKeys=EMP_ORDER.filter(function(k){ return keys.indexOf(k)>=0; });
+  keys.forEach(function(k){ if(orderedKeys.indexOf(k)<0) orderedKeys.push(k); });
+  var seriesData=orderedKeys.map(function(k,i){
+    return {key:k, label:SHORT[k], color:EMP_COLORS[i%EMP_COLORS.length], vals:empSeriesVals(k,view)};
+  });
+
+  var gz='';
+  var ghLabels={period:'월별 추이',dept:'부서별',company:'회사별',position:'직급별'};
+  var ghLabel=ghLabels[view]||'';
+
+  if(view==='period'){
+    var lineKeys=['empTotal','empLogin','empNoLogin'];
+    var barKeys=['empActive','empNew','empPc','empMobile'];
+    var lineSeries=seriesData.filter(function(s){ return lineKeys.indexOf(s.key)>=0; });
+    var barSeries=seriesData.filter(function(s){ return barKeys.indexOf(s.key)>=0; });
+    var n=labels.length;
+    var allVals=[].concat.apply([],seriesData.map(function(s){return s.vals;}));
+    var mx=Math.max.apply(null,allVals), mn=0; // 0 기준으로 고정 → 전체 항상 막대보다 위
+    var yRange=mx-mn||1;
+
+    // 막대: SVG rect 대신 HTML div (절대위치) → mouseover 확실히 동작
+    var colSpacing=92/(n-1);            // 월간 간격 (%)
+    var maxColW=colSpacing*0.8;         // 한 달 영역의 80% 이내
+    var barItemW=Math.min(maxColW/Math.max(1,barSeries.length), 4); // 시리즈당 너비, 최대 4%
+    barItemW=Math.max(barItemW, 1);     // 최소 1%
+    var htmlBars='';
+    var graphH=128; // line-box(150px) - bottom offset(22px)
+    barSeries.forEach(function(s,si){
+      s.vals.forEach(function(v,i){
+        var leftPct=4+i*(92/(n-1))-(barSeries.length-1)*barItemW/2+si*barItemW;
+        var barHpx=Math.max(2, Math.round((v-mn)/yRange*graphH));
+        htmlBars+='<div class="emp-bar-div" style="'+
+          'position:absolute;'+
+          'left:'+leftPct.toFixed(1)+'%;'+
+          'bottom:22px;'+
+          'width:'+barItemW+'%;'+
+          'height:'+barHpx+'px;'+
+          'background:'+s.color+';'+
+          'opacity:0.75;'+
+          'border-radius:2px 2px 0 0;'+
+          'cursor:default;'+
+          'z-index:1'+
+          '" data-tip="'+labels[i]+' '+s.label+' · '+v+UNIT[s.key]+'"></div>';
+      });
+    });
+
+    // 선 차트: SVG polyline (선만)
+    var svgLines='';
+    var htmlOverlays='';
+    lineSeries.forEach(function(s){
+      var pts=s.vals.map(function(v,i){
+        var xp=4+i*(92/(n-1));
+        var yp=14+(1-((v-mn)/yRange))*64;
+        return [Math.round(xp*100)/100, Math.round(yp*100)/100];
+      });
+      var poly=pts.map(function(p){return p[0]+','+p[1];}).join(' ');
+      svgLines+='<polyline points="'+poly+'" fill="none" stroke="'+s.color+'" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+      pts.forEach(function(p,i){
+        var isLast=(i===pts.length-1);
+        htmlOverlays+='<div class="lp emp-lp" style="left:'+p[0]+'%;top:'+p[1]+'%" data-tip="'+labels[i]+' '+s.label+' · '+s.vals[i]+UNIT[s.key]+'">'+
+          '<span class="lp-dot'+(isLast?' lp-dot-last':'')+'" style="background:'+s.color+';border-color:'+s.color+'"></span>'+
+          (isLast?'<span class="lp-last" style="color:'+s.color+'">'+s.vals[i]+UNIT[s.key]+'</span>':'')+
+        '</div>';
+      });
+    });
+    var htmlCaps=labels.map(function(l,i){ var xp=4+i*(92/(n-1)); return '<span class="lp-cap" style="left:'+xp+'%">'+l+'</span>'; }).join('');
+    var legend=seriesData.map(function(s){
+      var isLine=lineKeys.indexOf(s.key)>=0;
+      return '<span class="emp-leg">'+(isLine?'<span style="display:inline-block;width:16px;height:2px;background:'+s.color+';vertical-align:middle;margin-right:4px;border-radius:1px"></span>':'<span class="emp-dot" style="background:'+s.color+';opacity:.75"></span>')+s.label+'</span>';
+    }).join('');
+    gz='<div class="c-graph-head">'+ghLabel+'</div>'+
+      '<div class="line-wrap"><div class="line-box emp-line-box" style="position:relative">'+
+        htmlBars+
+        '<svg viewBox="0 0 100 100" preserveAspectRatio="none" class="line-svg" style="pointer-events:none;z-index:2">'+svgLines+'</svg>'+
+        '<div class="line-overlay" style="z-index:2">'+htmlOverlays+'</div>'+
+        '<div class="line-caps">'+htmlCaps+'</div>'+
+      '</div></div><div class="emp-legend">'+legend+'</div>';
+
+  } else {
+    var allVals2=[].concat.apply([],seriesData.map(function(s){return s.vals;}));
+    var mx2=Math.max.apply(null,allVals2);
+    var barW=Math.max(10, Math.floor(60/orderedKeys.length));
+    gz='<div class="c-graph-head">'+ghLabel+'</div><div class="bars emp-multi-bars">';
+    labels.forEach(function(l,li){
+      gz+='<div class="bar-col"><div class="bar-wrap">';
+      seriesData.forEach(function(s){
+        var hh=Math.round(s.vals[li]/mx2*88);
+        gz+='<div class="emp-bar-stack" style="height:'+hh+'%;width:'+barW+'%;background:'+s.color+';border-radius:3px 3px 0 0;min-height:3px;cursor:default" data-tip="'+l+' '+s.label+' · '+s.vals[li]+''+UNIT[s.key]+'"></div>';
+      });
+      gz+='</div><div class="bar-cap">'+l+'</div></div>';
+    });
+    gz+='</div>';
+    var legend2=seriesData.map(function(s){ return '<span class="emp-leg"><span class="emp-dot" style="background:'+s.color+'"></span>'+s.label+'</span>'; }).join('');
+    gz+='<div class="emp-legend">'+legend2+'</div>';
+  }
+  return '<div class="c-col">'+kpiZone+'<div class="c-graph-l">'+gz+'</div></div>';
+}
+
 function compInner(c){
+  // 임직원 현황·접속 현황 → 멀티 시리즈 그래프
+  var EMP_DOMAINS={employee:true, access:true};
+  if(EMP_DOMAINS[c.domain]){
+    return compInnerEmp(c);
+  }
   // 집계 데이터 없음(메인 지표 값이 0 또는 없음) → empty 표시
   var _mv=parseFloat(String(VAL[c.main]||'0').replace(/,/g,''));
   if(!_mv){
@@ -11524,7 +11740,7 @@ function renderGrid(){
       '당해년도':_y+'년 누적',
       '전년도':(_y-1)+'년 누적'
     };
-    var baseDate=(c.domain==='apply')?'신청일':'학습시작일';
+    var baseDate=(c.domain==='apply')?'신청일':(c.domain==='employee')?'등록일':(c.domain==='access')?'로그인일':'학습시작일';
     var basisLabel='<span class="c-basis">'+(PERIOD_LABEL[c.period]||(_m+'월 기준'))+' · '+baseDate+' 기준</span>';
     var detail='<span class="c-detail">›</span>';
     var titleIcon=TITLE_ICON[c.domain]?'<span class="c-title-ico">'+TITLE_ICON[c.domain]+'</span>':'';
@@ -11547,7 +11763,8 @@ function bindEvents(){
   // 도넛 세그먼트 호버 툴팁
   document.querySelectorAll('.pie-chart-svg').forEach(function(box){
     var tip=box.querySelector('.pie-tip');
-    box.querySelectorAll('.pie-seg').forEach(function(seg){
+    if(!tip) return;
+    box.querySelectorAll('.pie-seg,.emp-seg').forEach(function(seg){
       seg.addEventListener('mousemove',function(e){
         var r=box.getBoundingClientRect();
         tip.textContent=seg.getAttribute('data-tip');
@@ -11558,8 +11775,64 @@ function bindEvents(){
       seg.addEventListener('mouseleave',function(){ tip.classList.remove('on'); });
     });
   });
+  // emp-bar-div 직접 바인딩 (전역 위임이 z-index 문제로 막히는 경우 대비)
+  document.querySelectorAll('.emp-bar-div').forEach(function(bar){
+    bar.style.zIndex = '2';
+    bar.addEventListener('mouseenter', function(e){
+      _empTip.textContent = bar.getAttribute('data-tip');
+      _empTip.style.left = (e.clientX + 14) + 'px';
+      _empTip.style.top = (e.clientY - 40) + 'px';
+      _empTip.classList.add('on');
+      bar.style.opacity = '1';
+    });
+    bar.addEventListener('mousemove', function(e){
+      _empTip.style.left = (e.clientX + 14) + 'px';
+      _empTip.style.top = (e.clientY - 40) + 'px';
+    });
+    bar.addEventListener('mouseleave', function(){
+      _empTip.classList.remove('on');
+      bar.style.opacity = '0.75';
+    });
+  });
+  // emp 툴팁: 전역 이벤트 위임으로 처리 (renderGrid 재호출 후에도 동작)
   if(editing) bindDrag();
 }
+// ── emp 툴팁: 전역 초기화 (1회만) ──────────────────────────
+var _empTip = document.createElement('div');
+_empTip.className = 'emp-svg-tip';
+document.body.appendChild(_empTip);
+
+// data-tip 속성 가진 emp 요소들 → 이벤트 위임
+document.addEventListener('mouseover', function(e) {
+  var t = e.target;
+  if (!t || !t.getAttribute) return;
+  var tip = t.getAttribute('data-tip');
+  var cls = t.className || '';
+  if (tip && (cls.indexOf('emp-bar-div') >= 0 || cls.indexOf('emp-bar-stack') >= 0 || cls.indexOf('emp-stack-seg') >= 0 || cls.indexOf('emp-lp') >= 0)) {
+    _empTip.textContent = tip;
+    _empTip.classList.add('on');
+    if (cls.indexOf('emp-bar-div') >= 0) { t.style.opacity = '1'; }
+  }
+});
+document.addEventListener('mousemove', function(e) {
+  if (_empTip.classList.contains('on')) {
+    _empTip.style.left = (e.clientX + 14) + 'px';
+    _empTip.style.top = (e.clientY - 40) + 'px';
+  }
+});
+document.addEventListener('mouseout', function(e) {
+  var t = e.target;
+  if (!t || !t.getAttribute) return;
+  var cls = t.className || '';
+  if (cls.indexOf('emp-bar-div') >= 0 || cls.indexOf('emp-bar-stack') >= 0 || cls.indexOf('emp-stack-seg') >= 0 || cls.indexOf('emp-lp') >= 0) {
+    _empTip.classList.remove('on');
+    if (cls.indexOf('emp-bar-div') >= 0) { t.style.opacity = '0.75'; }
+    // lp-dot scale 복원
+    var dot = t.querySelector && t.querySelector('.lp-dot');
+    if (dot) dot.style.transform = '';
+  }
+});
+
 function bindDrag(){
   var dragEl=null;
   document.querySelectorAll('.comp').forEach(function(el){
@@ -11596,6 +11869,7 @@ function fillDomain(domain, keepExtras){
   if(!keepExtras && d.defPeriod){
     document.querySelectorAll('.chips[data-single] .chip').forEach(function(ch){ ch.classList.toggle('on', ch.textContent===d.defPeriod); });
   }
+  refreshViewOptions();
 }
 function openSlide(idx){
   editIndex=idx;
@@ -11608,7 +11882,7 @@ function openSlide(idx){
   document.querySelectorAll('.size-opt').forEach(function(o){ o.classList.toggle('on',o.dataset.size===c.size); });
   document.querySelectorAll('.chips[data-filter] .chip').forEach(function(ch){ ch.classList.remove('on'); });
   if(isEdit){ document.querySelectorAll('.chips[data-single] .chip').forEach(function(ch){ ch.classList.toggle('on', !!c.period && ch.textContent===c.period); }); }
-  refreshAuto(); refreshFilterUI();
+  refreshViewOptions(); refreshFilterUI();
   document.getElementById('overlay').classList.add('on');
   document.getElementById('slide').classList.add('on');
 }
@@ -11667,11 +11941,41 @@ function refreshExtraLimit(){
   var max=extraMax();
   var on=document.querySelectorAll('#extraChips .chip.on').length;
   var hint=document.getElementById('extraHint');
-  if(hint) hint.textContent='· 최대 '+max+'개 ('+on+'/'+max+')';
+  // 임직원 현황·접속 현황은 선택 가능 지표가 적으므로 힌트 텍스트 숨김
+  var isEmpDomain=(curDomain==='employee'||curDomain==='access');
+  if(hint) hint.textContent=isEmpDomain?'':('· 최대 '+max+'개 ('+on+'/'+max+')');
   // 초과분 자동 해제
   if(on>max){ var chips=document.querySelectorAll('#extraChips .chip.on'); for(var i=max;i<chips.length;i++) chips[i].classList.remove('on'); }
 }
+function refreshViewOptions(){
+  var sel=document.getElementById('mView');
+  var typeOpt=sel.querySelector('option[value="type"]');
+  var isEmpDomain=(curDomain==='employee'||curDomain==='access');
+  var isEmployee=(curDomain==='employee');
+  // 과정유형별: 임직원/접속 현황에서 숨김
+  if(typeOpt){ typeOpt.disabled=isEmpDomain; typeOpt.hidden=isEmpDomain; }
+  if(isEmpDomain && sel.value==='type') sel.value='period';
+  // 임직원 현황 + 월별 추이: 기간을 '당해년도'로 고정
+  var periodChips=document.querySelectorAll('.chips[data-single] .chip');
+  if(isEmployee && sel.value==='period'){
+    periodChips.forEach(function(ch){
+      var isYear=(ch.textContent==='당해년도');
+      ch.classList.toggle('on', isYear);
+      ch.classList.toggle('locked', !isYear);
+      ch.style.pointerEvents=isYear?'':'none';
+      ch.style.opacity=isYear?'':'0.35';
+    });
+  } else {
+    periodChips.forEach(function(ch){
+      ch.classList.remove('locked');
+      ch.style.pointerEvents='';
+      ch.style.opacity='';
+    });
+  }
+  refreshAuto();
+}
 document.querySelectorAll('#domainChips .chip').forEach(function(ch){ ch.addEventListener('click',function(){ fillDomain(ch.dataset.d); }); });
+document.getElementById('mView').addEventListener('change', refreshViewOptions);
 document.querySelectorAll('.size-opt').forEach(function(o){ o.addEventListener('click',function(){ document.querySelectorAll('.size-opt').forEach(function(x){x.classList.remove('on');}); o.classList.add('on'); refreshExtraLimit(); }); });
 document.querySelectorAll('.chips[data-filter]').forEach(function(row){
   var single=row.hasAttribute('data-single');
