@@ -11435,11 +11435,12 @@ var GROUP_DATA={
 };
 
 var DEFAULT=[
+  {domain:'employee',main:'empTotal',extras:['empTotal','empNew','empActive'],view:'period',size:'m',period:'당해년도'},
+  {domain:'access',main:'empLogin',extras:['empLogin','empNoLogin','empPc','empMobile'],view:'none',size:'m',period:'당월'},
   {domain:'apply',main:'apply',extras:['courses','approved','waiting','canceled'],view:'type',size:'m',period:'당월'},
   {domain:'study',main:'total',extras:['courses','yejung','doing','done'],view:'position',size:'m',period:'당월'},
   {domain:'result',main:'rate',extras:['courses','total','completed','misuryo'],view:'dept',size:'l',period:'전월'},
-  {domain:'cost',main:'fee',extras:['courses','total','perhead'],view:'period',size:'l',period:'당해년도'},
-  {domain:'cost',main:'fee',extras:['courses','total','paidApply','freeApply'],view:'type',size:'l',period:'당해년도'}
+  {domain:'cost',main:'fee',extras:['courses','total','perhead'],view:'period',size:'l',period:'당해년도'}
 ];
 var comps=JSON.parse(JSON.stringify(DEFAULT));
 var editing=false, editIndex=-1;
