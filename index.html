@@ -2068,6 +2068,9 @@
   .emp-kpi-tile-lbl { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); font-weight:500; }
   .emp-kpi-tile-val { font-size:36px; font-weight:800; color:var(--ink); letter-spacing:-1px; line-height:1; }
   .emp-kpi-tile-unit { font-size:16px; font-weight:600; color:var(--muted); margin-left:2px; }
+  .emp-kpi-tile-cmp { font-size:11px; font-weight:500; margin-top:4px; }
+  .emp-kpi-tile-cmp.up { color:#1a73e8; }
+  .emp-kpi-tile-cmp.down { color:#e53935; }
   .emp-stack-seg:hover { opacity:.75; }
   /* emp 툴팁 */
   .emp-svg-tip { position:fixed; background:rgba(30,45,64,.88); color:#fff; font-size:11px; padding:4px 8px; border-radius:5px; pointer-events:none; white-space:nowrap; opacity:0; transition:opacity .12s; z-index:9999; }
@@ -11473,21 +11476,30 @@ function compInnerEmp(c){
   var view=c.view||'period';
   var isL=(c.size==='l');
   var isEmployee=(c.domain==='employee');
+  var CMP_BASIS={'당월':'전월 대비','전월':'직전월 대비','당해년도':'전년도 대비'};
+  var cmpBasis=CMP_BASIS[c.period]||'전월 대비';
 
-  // KPI 수치 영역
+  // KPI 수치 영역 (증감 포함)
   var kpiItems=keys.map(function(k,i){
+    var cmpVal=CMP[k]||'';
+    var isUp=CMPUP[k];
+    var cmpHtml=cmpVal?('<span class="k-c'+(isUp?'':' down')+'">'+cmpVal+' '+cmpBasis+'</span>'):'';
     return '<div class="kpi"><div class="k-l"><span class="emp-dot" style="background:'+EMP_COLORS[i%EMP_COLORS.length]+'"></span>'+SHORT[k]+'</div>'+
-      '<div class="k-v">'+VAL[k]+'<span class="u">'+UNIT[k]+'</span></div></div>';
+      '<div class="k-vline"><span class="k-v">'+VAL[k]+'<span class="u">'+UNIT[k]+'</span></span>'+cmpHtml+'</div></div>';
   }).join('');
   var kpiZone='<div class="kpibar emp-kpi">'+kpiItems+'</div>';
 
   // 단일 수치: 임직원 현황 / 접속 현황 공통 — 선택한 지표를 크게 표시
   if(view==='none'){
-    var cols=isL?4:2; // L: 최대 4열, M: 2열
+    var cols=isL?4:2;
     var tileItems=keys.map(function(k,i){
+      var cmpVal=CMP[k]||'';
+      var isUp=CMPUP[k];
+      var cmpHtml=cmpVal?('<div class="emp-kpi-tile-cmp '+(isUp?'up':'down')+'">'+cmpVal+' '+cmpBasis+'</div>'):'';
       return '<div class="emp-kpi-tile">'+
         '<div class="emp-kpi-tile-lbl"><span class="emp-dot" style="background:'+EMP_COLORS[i%EMP_COLORS.length]+'"></span>'+SHORT[k]+'</div>'+
         '<div class="emp-kpi-tile-val">'+VAL[k]+'<span class="emp-kpi-tile-unit">'+UNIT[k]+'</span></div>'+
+        cmpHtml+
       '</div>';
     }).join('');
     return '<div class="c-col"><div class="emp-kpi-tiles" style="grid-template-columns:repeat('+cols+',1fr)">'+tileItems+'</div></div>';
