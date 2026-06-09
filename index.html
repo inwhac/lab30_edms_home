@@ -2062,7 +2062,43 @@
   .h-bar-track { flex:1; height:10px; background:#e8f0fe; border-radius:5px; overflow:hidden; }
   .h-bar-fill { height:100%; background:#1a73e8; border-radius:5px; transition:width .3s; }
   .h-bar-val { width:40px; color:var(--fg); font-size:11px; flex-shrink:0; }
-  /* emp 단일 수치 타일 */
+  /* 채널 현황 카드 */
+  .ch-kpi-row2 { display:flex; align-items:center; gap:0; padding:4px 0 14px; }
+  .ch-kpi-item { display:flex; flex-direction:column; gap:3px; flex:1; }
+  .ch-kpi-lbl2 { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); font-weight:500; }
+  .ch-kpi-val2 { font-size:26px; font-weight:800; color:var(--ink); letter-spacing:-0.5px; line-height:1.1; }
+  .ch-unit { font-size:12px; font-weight:500; color:var(--muted); margin-left:1px; }
+  .ch-kpi-vline { width:1px; background:#e8edf2; margin:0 20px; flex-shrink:0; }
+  /* 단일 수치 타일 */
+  .ch-tiles { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#e8edf2; border-radius:10px; overflow:hidden; width:100%; }
+  .ch-tile { background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:20px 12px; }
+  .ch-tile-lbl { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); font-weight:500; }
+  .ch-tile-val { font-size:34px; font-weight:800; color:var(--ink); letter-spacing:-1px; line-height:1; }
+  .ch-tile-unit { font-size:14px; font-weight:600; color:var(--muted); margin-left:2px; }
+  .ch-tile-cmp { font-size:11px; }
+  /* 도넛 */
+  .ch-donut-wrap { display:flex; align-items:center; gap:20px; padding:4px 0; }
+  .ch-donut-legend { display:flex; flex-direction:column; gap:7px; flex:1; }
+  .ch-donut-leg-row { display:flex; align-items:center; gap:7px; font-size:12px; }
+  .ch-donut-leg-lbl { flex:1; color:var(--muted); }
+  .ch-donut-leg-val { color:var(--ink); font-weight:700; min-width:36px; text-align:right; }
+  .ch-donut-leg-pct { color:var(--muted); min-width:32px; text-align:right; }
+  /* 채널 현황 - 단일 수치 */
+  .ch-none-wrap { display:flex; flex-direction:column; gap:0; width:100%; }
+  .ch-none-section { display:flex; flex-direction:column; gap:8px; padding:8px 0; }
+  .ch-none-header { display:flex; align-items:center; justify-content:space-between; }
+  .ch-none-left { display:flex; align-items:center; gap:6px; }
+  .ch-none-lbl { font-size:12px; color:var(--muted); font-weight:500; }
+  .ch-none-num { font-size:22px; font-weight:800; color:var(--ink); letter-spacing:-0.5px; line-height:1; margin-left:4px; }
+  .ch-none-types { display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:5px 10px; }
+  .ch-none-type-lbl { font-size:12px; color:var(--muted); }
+  .ch-none-type-val { font-size:12px; color:var(--ink); font-weight:700; text-align:right; }
+  .ch-none-type-pct { font-size:12px; color:var(--muted); text-align:right; min-width:28px; }
+  .ch-none-divider { height:1px; background:#e8edf2; margin:4px 0; }
+  /* 채널 현황 - 도넛 2개 */
+  .ch-donut-pair { display:flex; align-items:flex-start; width:100%; }
+  .ch-donut-block { flex:1; display:flex; flex-direction:column; gap:8px; }
+  .ch-donut-title { font-size:12px; font-weight:600; color:var(--muted); }
   .emp-kpi-tiles { display:grid; gap:1px; width:100%; height:100%; background:#f0f4f8; border-radius:8px; overflow:hidden; }
   .emp-kpi-tile { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px; padding:20px 12px; background:#fff; }
   .emp-kpi-tile-lbl { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); font-weight:500; }
@@ -2388,6 +2424,8 @@
         <span class="chip" data-d="study">학습자 수</span>
         <span class="chip" data-d="result">수료율</span>
         <span class="chip" data-d="cost">교육비</span>
+        <span class="chip" data-d="channel">채널 현황</span>
+        <span class="chip" data-d="channelAct">채널 참여/활동</span>
       </div>
     </div>
     <div class="field">
@@ -11367,10 +11405,24 @@ var DOMAIN={
     extras:['empLogin','empNoLogin','empPc','empMobile'],
     defaults:['empLogin','empNoLogin','empPc','empMobile'],
     defPeriod:'당월'
+  },
+  channel:{
+    label:'채널 현황',
+    mains:['chTotal'],
+    extras:['chTotal','chNew'],
+    defaults:['chTotal','chNew'],
+    defPeriod:'당월'
+  },
+  channelAct:{
+    label:'채널 참여/활동',
+    mains:['chMember'],
+    extras:['chMember','chPost','chComment','chReaction'],
+    defaults:['chMember','chPost','chComment'],
+    defPeriod:'당월'
   }
 };
 // 전체 지표 라벨·단위·값 (영역 공통 풀)
-var LABEL={total:'학습자 수',courses:'과정 수',rate:'수료율',apply:'신청 수',fee:'교육비',completed:'수료자 수',perhead:'1인당 교육비',empTotal:'임직원 현황',empLogin:'접속 현황'};
+var LABEL={total:'학습자 수',courses:'과정 수',rate:'수료율',apply:'신청 수',fee:'교육비',completed:'수료자 수',perhead:'1인당 교육비',empTotal:'임직원 현황',empLogin:'접속 현황',chTotal:'채널 현황',chMember:'채널 참여/활동'};
 // 상위 타이틀 아이콘 (채워진 컬러 아이콘 · 종이+연필/책 톤)
 var TITLE_ICON={
   apply:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 3h8l4 4v6.5l-2 2V8h-4V4H5v16h6l-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="#5b9bf3"/><path d="M13 3l4 4h-4V3z" fill="#9cc3f8"/><path d="M20.7 11.3l1 1a1 1 0 0 1 0 1.4l-6.1 6.1-2.6.6.6-2.6 6.1-6.1a1 1 0 0 1 1.4 0z" fill="#f4b740"/><path d="M19.3 12.7l1.4 1.4-5.2 5.2-1.4-1.4z" fill="#ffd479"/></svg>',
@@ -11378,38 +11430,50 @@ var TITLE_ICON={
   result:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3L1.5 8 12 13l10.5-5L12 3z" fill="#5b9bf3"/><path d="M5 11v4.2c0 1.6 3.1 2.8 7 2.8s7-1.2 7-2.8V11l-7 3.3L5 11z" fill="#9cc3f8"/><path d="M21.5 8.2v5.3" stroke="#f4b740" stroke-width="1.6" stroke-linecap="round"/><circle cx="21.5" cy="14.4" r="1.2" fill="#f4b740"/></svg>',
   cost:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="9" cy="9" r="6" fill="#ffd479"/><circle cx="9" cy="9" r="6" fill="none" stroke="#f4b740" stroke-width="1.2"/><path d="M9 5.5v7M6.5 7.5h5M6.5 10h5" stroke="#b8860b" stroke-width="1.1" stroke-linecap="round"/><circle cx="15" cy="15" r="6" fill="#5b9bf3"/><path d="M15 11.5v7M12.5 13.5h5M12.5 16h5" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg>',
   employee:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="9" cy="7" r="3.2" fill="#5b9bf3"/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6" fill="#9cc3f8"/><circle cx="17" cy="8" r="2.4" fill="#f4b740"/><path d="M13.5 19c0-2.5 1.6-4.6 3.8-5.4" stroke="#ffd479" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>',
-  access:'<svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="5" width="18" height="13" rx="2" fill="#9cc3f8"/><rect x="3" y="5" width="18" height="9" rx="2" fill="#5b9bf3"/><circle cx="17" cy="9" r="2.5" fill="#ffd479" stroke="#f4b740" stroke-width="1"/><path d="M14.5 9h-8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><path d="M9 18l3-1h0l3 1" stroke="#9cc3f8" stroke-width="1.2" fill="none"/></svg>'
+  access:'<svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="5" width="18" height="13" rx="2" fill="#9cc3f8"/><rect x="3" y="5" width="18" height="9" rx="2" fill="#5b9bf3"/><circle cx="17" cy="9" r="2.5" fill="#ffd479" stroke="#f4b740" stroke-width="1"/><path d="M14.5 9h-8" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/><path d="M9 18l3-1h0l3 1" stroke="#9cc3f8" stroke-width="1.2" fill="none"/></svg>',
+  channel:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8l-4 3V5a1 1 0 0 1 1-1z" fill="#5b9bf3"/><circle cx="8" cy="10" r="1.5" fill="#fff"/><circle cx="12" cy="10" r="1.5" fill="#fff"/><circle cx="16" cy="10" r="1.5" fill="#fff"/></svg>',
+  channelAct:'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8l-4 3V5a1 1 0 0 1 1-1z" fill="#9cc3f8"/><path d="M8 8h8M8 11h5" stroke="#1a73e8" stroke-width="1.4" stroke-linecap="round"/><circle cx="18" cy="16" r="4" fill="#f4b740"/><path d="M16.5 16h3M18 14.5v3" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>'
 };
 var SHORT={total:'총 학습자',courses:'총 과정',rate:'수료율',apply:'총 신청',fee:'총 교육비',perhead:'1인당 교육비',
   yejung:'예정',doing:'학습중',done:'종료',completed:'수료',misuryo:'미수료',before:'수료처리전',
   approved:'승인',waiting:'승인대기',canceled:'취소',paid:'입금완료',paywait:'입금대기',paycancel:'입금취소',
   paidApply:'유료 학습자',freeApply:'무료 학습자',
   empTotal:'전체 임직원',empNew:'신규 등록',empActive:'재직',
-  empLogin:'로그인',empNoLogin:'미로그인',empPc:'PC 접속',empMobile:'모바일 접속',empPatternDay:'요일별 패턴',empPatternHour:'시간대별 패턴'};
+  empLogin:'로그인',empNoLogin:'미로그인',empPc:'PC 접속',empMobile:'모바일 접속',empPatternDay:'요일별 패턴',empPatternHour:'시간대별 패턴',
+  chTotal:'전체 채널',chNew:'신규 개설',chGeneral:'일반',chCourse:'과정',chMentor:'멘토링',chExpert:'전문가',
+  chMember:'참여자 수',chPost:'게시글 수',chComment:'댓글 수',chReaction:'반응 수'};
 var UNIT={total:'명',courses:'개',rate:'%',apply:'건',fee:'원',perhead:'원',
   yejung:'명',doing:'명',done:'명',completed:'명',misuryo:'명',before:'명',
   approved:'건',waiting:'건',canceled:'건',paid:'건',paywait:'건',paycancel:'건',
   paidApply:'명',freeApply:'명',
   empTotal:'명',empNew:'명',empActive:'명',
-  empLogin:'명',empNoLogin:'명',empPc:'명',empMobile:'명',empPatternDay:'-',empPatternHour:'-'};
+  empLogin:'명',empNoLogin:'명',empPc:'명',empMobile:'명',empPatternDay:'-',empPatternHour:'-',
+  chTotal:'개',chNew:'개',chGeneral:'개',chCourse:'개',chMentor:'개',chExpert:'개',
+  chMember:'명',chPost:'건',chComment:'건',chReaction:'건'};
 var VAL={total:'2,040',courses:'55',rate:'86.7',apply:'1,284',fee:'32,450,000',perhead:'15,907',
   yejung:'180',doing:'1,240',done:'620',completed:'520',misuryo:'80',before:'20',
   approved:'1,042',waiting:'86',canceled:'156',paid:'980',paywait:'120',paycancel:'42',
   paidApply:'1,560',freeApply:'480',
   empTotal:'348',empNew:'36',empActive:'312',
-  empLogin:'268',empNoLogin:'80',empPc:'214',empMobile:'54',empPatternDay:'-',empPatternHour:'-'};
+  empLogin:'268',empNoLogin:'80',empPc:'214',empMobile:'54',empPatternDay:'-',empPatternHour:'-',
+  chTotal:'124',chNew:'8',chGeneral:'52',chCourse:'38',chMentor:'22',chExpert:'12',
+  chMember:'1,840',chPost:'3,247',chComment:'8,124',chReaction:'12,530'};
 var CMP={total:'▲ +5.8%',courses:'▲ +3개',rate:'▲ +1.8%p',apply:'▲ +9.2%',fee:'▲ +7.5%',perhead:'▼ -1,200원',
   yejung:'▲ +12명',doing:'▲ +6.2%',done:'▲ +28명',completed:'▲ +34명',misuryo:'▼ -6명',before:'▼ -4명',
   approved:'▲ +8.1%',waiting:'▲ +12건',canceled:'▲ +18건',paid:'▲ +6.4%',paywait:'▼ -8건',paycancel:'▲ +5건',
   paidApply:'▲ +7.2%',freeApply:'▲ +12.4%',
   empTotal:'▲ +12명',empNew:'▲ +3명',empActive:'▲ +9명',
-  empLogin:'▲ +18명',empNoLogin:'▼ -6명',empPc:'▲ +14명',empMobile:'▲ +4명',empPatternDay:'-',empPatternHour:'-'};
+  empLogin:'▲ +18명',empNoLogin:'▼ -6명',empPc:'▲ +14명',empMobile:'▲ +4명',empPatternDay:'-',empPatternHour:'-',
+  chTotal:'▲ +8개',chNew:'▲ +3개',chGeneral:'▲ +2개',chCourse:'▲ +3개',chMentor:'▲ +1개',chExpert:'▲ +2개',
+  chMember:'▲ +124명',chPost:'▲ +9.2%',chComment:'▲ +12.4%',chReaction:'▲ +18.6%'};
 var CMPUP={total:true,courses:true,rate:true,apply:true,fee:true,perhead:true,
   yejung:true,doing:true,done:true,completed:true,misuryo:false,before:false,
   approved:true,waiting:true,canceled:false,paid:true,paywait:true,paycancel:false,
   paidApply:true,freeApply:true,
   empTotal:true,empNew:true,empActive:true,
-  empLogin:true,empNoLogin:false,empPc:true,empMobile:true,empPatternDay:true,empPatternHour:true};
+  empLogin:true,empNoLogin:false,empPc:true,empMobile:true,empPatternDay:true,empPatternHour:true,
+  chTotal:true,chNew:true,chGeneral:true,chCourse:true,chMentor:true,chExpert:true,
+  chMember:true,chPost:true,chComment:true,chReaction:true};
 
 // 그룹화 → 자동 그래프
 function decideGraph(group, main){
@@ -11435,12 +11499,14 @@ var GROUP_DATA={
 };
 
 var DEFAULT=[
-  {domain:'employee',main:'empTotal',extras:['empTotal','empNew','empActive'],view:'period',size:'m',period:'당해년도'},
-  {domain:'access',main:'empLogin',extras:['empLogin','empNoLogin','empPc','empMobile'],view:'none',size:'m',period:'당월'},
-  {domain:'apply',main:'apply',extras:['courses','approved','waiting','canceled'],view:'type',size:'m',period:'당월'},
-  {domain:'study',main:'total',extras:['courses','yejung','doing','done'],view:'position',size:'m',period:'당월'},
-  {domain:'result',main:'rate',extras:['courses','total','completed','misuryo'],view:'dept',size:'l',period:'전월'},
-  {domain:'cost',main:'fee',extras:['courses','total','perhead'],view:'period',size:'l',period:'당해년도'}
+  {domain:'employee',  main:'empTotal', extras:['empTotal','empNew','empActive'],                    view:'period', size:'m', period:'당해년도'},
+  {domain:'access',    main:'empLogin', extras:['empLogin','empNoLogin','empPc','empMobile'],        view:'none',   size:'m', period:'당월'},
+  {domain:'apply',     main:'apply',    extras:['courses','approved','waiting','canceled'],          view:'type',   size:'m', period:'당월'},
+  {domain:'study',     main:'total',    extras:['courses','yejung','doing','done'],                  view:'position',size:'m',period:'당월'},
+  {domain:'result',    main:'rate',     extras:['courses','total','completed','misuryo'],            view:'dept',   size:'m', period:'전월'},
+  {domain:'cost',      main:'fee',      extras:['courses','total','perhead'],                        view:'period', size:'m', period:'당해년도'},
+  {domain:'channel',   main:'chTotal',  extras:['chTotal','chNew'],                                 view:'type',   size:'m', period:'당월'},
+  {domain:'channelAct',main:'chMember', extras:['chMember','chPost','chComment','chReaction'],      view:'none',   size:'m', period:'당월'}
 ];
 var comps=JSON.parse(JSON.stringify(DEFAULT));
 var editing=false, editIndex=-1;
@@ -11461,6 +11527,16 @@ var EMP_RATIOS={
   empLogin: {period:[180,198,210,225,240,218,190,235,220,248,256,268], dept:[.28,.25,.18,.12,.09,.05,.03], company:[.62,.28,.10], position:[.38,.28,.18,.09,.05,.02]},
   empNoLogin:{period:[100,94,95,85,78,94,118,85,105,87,86,80], dept:[.36,.28,.12,.08,.07,.06,.03], company:[.67,.22,.11], position:[.48,.30,.12,.05,.03,.02]},
   empPc:    {period:[140,155,162,172,183,168,148,182,172,196,204,214], dept:[.30,.26,.16,.10,.09,.06,.03], company:[.63,.27,.10], position:[.38,.29,.18,.08,.05,.02]},
+  chTotal:  {period:[88,92,96,98,104,108,108,112,116,118,122,124], chType:[.42,.31,.18,.09]},
+  chNew:    {period:[4,4,4,2,6,4,0,4,4,2,4,8], chType:[.38,.38,.12,.12]},
+  chGeneral:{period:[36,38,40,42,44,46,46,48,50,50,52,52], chType:[1,0,0,0]},
+  chCourse: {period:[26,27,28,28,30,31,31,32,33,34,36,38], chType:[0,1,0,0]},
+  chMentor: {period:[16,16,17,17,18,19,19,20,21,21,22,22], chType:[0,0,1,0]},
+  chExpert: {period:[10,11,11,11,12,12,12,12,12,13,12,12], chType:[0,0,0,1]},
+  chMember: {period:[1280,1340,1420,1480,1560,1620,1580,1680,1720,1760,1800,1840], chType:[.38,.28,.20,.14]},
+  chPost:   {period:[2100,2240,2380,2520,2680,2840,2760,2920,3040,3120,3180,3247], chType:[.35,.30,.22,.13]},
+  chComment:{period:[5200,5480,5760,6040,6400,6800,6600,7000,7280,7560,7840,8124], chType:[.36,.29,.21,.14]},
+  chReaction:{period:[7800,8240,8720,9200,9800,10400,10100,10800,11200,11600,12000,12530], chType:[.37,.28,.22,.13]},
   empMobile:{period:[40,43,48,53,57,50,42,53,48,52,52,54], dept:[.28,.24,.18,.12,.09,.06,.03], company:[.60,.28,.12], position:[.42,.28,.16,.08,.04,.02]}
 };
 function empSeriesVals(key, view){
@@ -11469,9 +11545,212 @@ function empSeriesVals(key, view){
   if(view==='period'){
     return r.period.slice();
   }
+  if(view==='type'){
+    var ratios=r.chType||r.dept;
+    return ratios.map(function(rt){ return Math.round(base*rt); });
+  }
   var ratios=r[view]||r.dept;
   return ratios.map(function(rt){ return Math.round(base*rt); });
 }
+// ── 채널 현황 전용 렌더러 ────────────────────────────────
+var CH_TYPE_COLORS={'일반':'#1a73e8','과정':'#34a853','멘토링':'#f4b740','전문가':'#ea4335'};
+var CH_TYPE_KEYS=['chGeneral','chCourse','chMentor','chExpert'];
+var CH_TYPE_LABELS=['일반','과정','멘토링','전문가'];
+
+function compInnerChannel(c){
+  var isL=(c.size==='l');
+  var view=c.view||'period';
+  var CMP_BASIS={'당월':'전월 대비','전월':'직전월 대비','당해년도':'전년도 대비'};
+  var cmpBasis=CMP_BASIS[c.period]||'전월 대비';
+
+  var total=124, newCh=8;
+  var typeLabels=['일반','과정','멘토링','전문가'];
+  var typeColors=['#1a73e8','#34a853','#f4b740','#ea4335'];
+  var typeTotal=[52,38,22,12];
+
+  // ── 상단 KPI (전체/신규 수치만, 유형 분포 없음) ──
+  var kpiZone='<div class="ch-kpi-row2">'+
+    '<div class="ch-kpi-item">'+
+      '<div class="ch-kpi-lbl2"><span class="emp-dot" style="background:#1a73e8"></span>전체 채널</div>'+
+      '<div class="ch-kpi-val2">'+total+'<span class="ch-unit">개</span></div>'+
+      '<div class="k-c">'+(CMP.chTotal||'')+(CMP.chTotal?' '+cmpBasis:'')+'</div>'+
+    '</div>'+
+    '<div class="ch-kpi-vline" style="height:52px;align-self:center"></div>'+
+    '<div class="ch-kpi-item">'+
+      '<div class="ch-kpi-lbl2"><span class="emp-dot" style="background:#34a853"></span>신규 개설</div>'+
+      '<div class="ch-kpi-val2">'+newCh+'<span class="ch-unit">개</span></div>'+
+      '<div class="k-c">'+(CMP.chNew||'')+(CMP.chNew?' '+cmpBasis:'')+'</div>'+
+    '</div>'+
+  '</div>';
+
+  // ── 단일 수치: 카드 고정 높이 안에 맞게 ──
+  if(view==='none'){
+    var keys=c.extras&&c.extras.length?c.extras:['chTotal','chNew'];
+    var typeNew=[3,3,1,1];
+    var hasTotal=(keys.indexOf('chTotal')>=0);
+    var hasNew=(keys.indexOf('chNew')>=0);
+
+    function noneSection(lbl,color,val,cmpKey,typeVals,sum){
+      var cmpVal=CMP[cmpKey]||''; var isUp=CMPUP[cmpKey];
+      var typeItems=typeLabels.map(function(l,i){
+        var pct=Math.round(typeVals[i]/sum*100);
+        return '<div style="display:flex;flex-direction:column;gap:1px;padding:4px 8px;background:#f7f9fc;border-radius:6px;min-width:0">'+
+          '<div style="display:flex;align-items:center;gap:3px">'+
+            '<span style="width:5px;height:5px;border-radius:50%;background:'+typeColors[i]+';flex-shrink:0;display:inline-block"></span>'+
+            '<span style="font-size:11px;color:var(--muted);white-space:nowrap">'+l+'</span>'+
+          '</div>'+
+          '<div style="font-size:13px;font-weight:700;color:var(--ink)">'+typeVals[i]+'<span style="font-size:10px;font-weight:400;color:var(--muted)">개</span></div>'+
+          '<div style="font-size:10px;color:var(--muted)">'+pct+'%</div>'+
+        '</div>';
+      }).join('');
+      return '<div style="flex:1;min-width:0">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'+
+          '<div style="display:flex;align-items:center;gap:5px">'+
+            '<span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block"></span>'+
+            '<span style="font-size:12px;color:var(--muted);font-weight:500">'+lbl+'</span>'+
+            '<span style="font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;margin-left:2px">'+val+'<span style="font-size:11px;font-weight:400;color:var(--muted)">개</span></span>'+
+          '</div>'+
+          (cmpVal?'<span style="font-size:11px;color:'+(isUp?'#1a73e8':'#e53935')+'">'+cmpVal+' '+cmpBasis+'</span>':'')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px">'+typeItems+'</div>'+
+      '</div>';
+    }
+
+    var sumT=typeTotal.reduce(function(a,b){return a+b;},0);
+    var sumN=typeNew.reduce(function(a,b){return a+b;},0);
+
+    var sections=[];
+    if(hasTotal) sections.push({lbl:'전체 채널',color:'#1a73e8',val:total,key:'chTotal',tv:typeTotal,sum:sumT});
+    if(hasNew)   sections.push({lbl:'신규 개설',color:'#34a853',val:newCh, key:'chNew',  tv:typeNew,  sum:sumN});
+
+    // M: 위아래 스택 / L: 좌우 나란히
+    var wrapStyle=isL?
+      'display:flex;gap:16px;align-items:flex-start;width:100%':
+      'display:flex;flex-direction:column;gap:6px;width:100%';
+    var divider=isL?
+      '<div style="width:1px;background:#e8edf2;align-self:stretch;flex-shrink:0"></div>':
+      '<div style="height:1px;background:#e8edf2"></div>';
+
+    var inner=sections.map(function(s,i){
+      return (i>0?divider:'')+noneSection(s.lbl,s.color,s.val,s.key,s.tv,s.sum);
+    }).join('');
+
+    return '<div class="c-col"><div style="'+wrapStyle+'">'+inner+'</div></div>';
+  }
+
+  // ── 채널유형별: 도넛 2개 (전체 / 신규) ──
+  if(view==='type'){
+    var typeNew2=[3,3,1,1];
+    function makeDonut(vals, centerVal, centerLbl){
+      var R=38, CIRC=2*Math.PI*R;
+      var s=vals.reduce(function(a,b){return a+b;},0);
+      var segs='', offset=0;
+      vals.forEach(function(v,i){
+        var seg=CIRC*(v/s);
+        segs+='<circle class="pie-seg" cx="60" cy="60" r="'+R+'" fill="none" stroke="'+typeColors[i]+'" stroke-width="18"'+
+          ' stroke-dasharray="'+seg.toFixed(2)+' '+(CIRC-seg).toFixed(2)+'"'+
+          ' stroke-dashoffset="'+(-offset).toFixed(2)+'"'+
+          ' data-tip="'+typeLabels[i]+' · '+v+'개 ('+Math.round(v/s*100)+'%)"></circle>';
+        offset+=seg;
+      });
+      var legendRows=typeLabels.map(function(l,i){
+        var pct=Math.round(vals[i]/s*100);
+        return '<div class="ch-donut-leg-row">'+
+          '<span class="ch-type-dot" style="background:'+typeColors[i]+'"></span>'+
+          '<span class="ch-donut-leg-lbl">'+l+'</span>'+
+          '<span class="ch-donut-leg-val">'+vals[i]+'개</span>'+
+          '<span class="ch-donut-leg-pct">'+pct+'%</span>'+
+        '</div>';
+      }).join('');
+      return '<div class="ch-donut-block">'+
+        '<div class="ch-donut-title">'+centerLbl+'</div>'+
+        '<div class="ch-donut-wrap">'+
+          '<div class="pie-chart-svg" style="position:relative;width:110px;height:110px;flex-shrink:0">'+
+            '<svg viewBox="0 0 120 120"><g transform="rotate(-90 60 60)">'+
+              '<circle cx="60" cy="60" r="'+R+'" fill="none" stroke="#f0f4f8" stroke-width="18"/>'+
+              segs+
+            '</g>'+
+            '<text x="60" y="55" text-anchor="middle" font-size="14" font-weight="800" fill="#1e2d40">'+centerVal+'</text>'+
+            '<text x="60" y="68" text-anchor="middle" font-size="9" fill="#888">개</text>'+
+            '</svg><div class="pie-tip"></div>'+
+          '</div>'+
+          '<div class="ch-donut-legend">'+legendRows+'</div>'+
+        '</div>'+
+      '</div>';
+    }
+
+    var keys2=c.extras&&c.extras.length?c.extras:['chTotal','chNew'];
+    var hasTotal2=(keys2.indexOf('chTotal')>=0);
+    var hasNew2=(keys2.indexOf('chNew')>=0);
+    var donuts=[];
+    if(hasTotal2) donuts.push(makeDonut(typeTotal, total, '전체 채널'));
+    if(hasNew2)   donuts.push(makeDonut(typeNew2, newCh, '신규 개설'));
+    var donutHtml='<div class="ch-donut-pair">'+
+      donuts.join('<div class="ch-kpi-vline" style="align-self:stretch;margin:0 16px"></div>')+
+    '</div>';
+
+    return '<div class="c-col">'+kpiZone+'<div class="c-graph-l">'+donutHtml+'</div></div>';
+  }
+
+  // ── 월별 추이: 전체(실선) + 신규(점선), 유형별 제거 ──
+  var periodTotal=[88,92,96,98,104,108,108,112,116,118,122,124];
+  var periodNew=[4,4,4,2,6,4,0,4,4,2,4,8];
+  var labels=['6월','7월','8월','9월','10월','11월','12월','1월','2월','3월','4월','5월'];
+  var n=labels.length;
+  var mx=Math.max.apply(null,periodTotal), yRange=mx||1, graphH=128;
+  var colSpacing=92/(n-1);
+  var barW=Math.min(colSpacing*0.45,3.0);
+
+  // c.extras 기반으로 선/막대 결정
+  var keys3=c.extras&&c.extras.length?c.extras:['chTotal','chNew'];
+  var hasTotal3=(keys3.indexOf('chTotal')>=0);
+  var hasNew3=(keys3.indexOf('chNew')>=0);
+
+  // 신규 막대 (선택 시만)
+  var htmlBars='';
+  if(hasNew3){
+    periodNew.forEach(function(v,i){
+      var leftPct=4+i*colSpacing-barW/2;
+      var barHpx=Math.max(2,Math.round(v/yRange*graphH));
+      htmlBars+='<div class="emp-bar-div" style="position:absolute;left:'+leftPct.toFixed(1)+'%;bottom:22px;width:'+barW+'%;height:'+barHpx+'px;background:#34a853;opacity:0.75;border-radius:2px 2px 0 0;cursor:default;z-index:1" data-tip="'+labels[i]+' 신규 개설 · '+v+'개"></div>';
+    });
+  }
+
+  // 전체 선 (선택 시만)
+  var svgLine='', overlays='';
+  if(hasTotal3){
+    var pts=periodTotal.map(function(v,i){
+      return [+(4+i*colSpacing).toFixed(2), +(14+(1-v/yRange)*64).toFixed(2)];
+    });
+    var poly=pts.map(function(p){return p[0]+','+p[1];}).join(' ');
+    svgLine='<polyline points="'+poly+'" fill="none" stroke="#1a73e8" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+    overlays=pts.map(function(p,i){
+      var isLast=(i===pts.length-1);
+      return '<div class="lp emp-lp" style="left:'+p[0]+'%;top:'+p[1]+'%" data-tip="'+labels[i]+' 전체 채널 · '+periodTotal[i]+'개">'+
+        '<span class="lp-dot'+(isLast?' lp-dot-last':'')+'" style="background:#1a73e8;border-color:#1a73e8"></span>'+
+        (isLast?'<span class="lp-last" style="color:#1a73e8">'+periodTotal[i]+'개</span>':'')+
+      '</div>';
+    }).join('');
+  }
+  var caps=labels.map(function(l,i){return '<span class="lp-cap" style="left:'+(4+i*colSpacing).toFixed(1)+'%">'+l+'</span>';}).join('');
+  var legendItems=[];
+  if(hasTotal3) legendItems.push('<span class="emp-leg"><span style="display:inline-block;width:16px;height:2px;background:#1a73e8;vertical-align:middle;margin-right:4px;border-radius:1px"></span>전체 채널</span>');
+  if(hasNew3)   legendItems.push('<span class="emp-leg"><span class="emp-dot" style="background:#34a853;opacity:.75"></span>신규 개설</span>');
+  var legend='<div class="emp-legend">'+legendItems.join('')+'</div>';
+
+  var gz='<div class="c-graph-head">월별 추이</div>'+
+    '<div class="line-wrap"><div class="line-box emp-line-box" style="position:relative">'+
+      htmlBars+
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="none" class="line-svg" style="pointer-events:none;z-index:2">'+
+        '<polyline points="'+poly+'" fill="none" stroke="#1a73e8" stroke-width="2" vector-effect="non-scaling-stroke"/>'+
+      '</svg>'+
+      '<div class="line-overlay" style="z-index:2">'+overlays+'</div>'+
+      '<div class="line-caps">'+caps+'</div>'+
+    '</div></div>'+legend;
+
+  return '<div class="c-col">'+kpiZone+'<div class="c-graph-l">'+gz+'</div></div>';
+}
+
 function compInnerEmp(c){
   var keys=((c.extras&&c.extras.length)?c.extras:[c.main]);
   var view=c.view||'period';
@@ -11516,12 +11795,12 @@ function compInnerEmp(c){
   });
 
   var gz='';
-  var ghLabels={period:'월별 추이',dept:'부서별',company:'회사별',position:'직급별'};
+  var ghLabels={period:'월별 추이',dept:'부서별',company:'회사별',position:'직급별',type:'채널유형별'};
   var ghLabel=ghLabels[view]||'';
 
   if(view==='period'){
-    var lineKeys=['empTotal','empLogin','empNoLogin'];
-    var barKeys=['empActive','empNew','empPc','empMobile'];
+    var lineKeys=['empTotal','empLogin','empNoLogin','chTotal','chMember'];
+    var barKeys=['empActive','empNew','empPc','empMobile','chNew','chGeneral','chCourse','chMentor','chExpert','chPost','chComment','chReaction'];
     var lineSeries=seriesData.filter(function(s){ return lineKeys.indexOf(s.key)>=0; });
     var barSeries=seriesData.filter(function(s){ return barKeys.indexOf(s.key)>=0; });
     var n=labels.length;
@@ -11607,9 +11886,194 @@ function compInnerEmp(c){
   return '<div class="c-col">'+kpiZone+'<div class="c-graph-l">'+gz+'</div></div>';
 }
 
+// ── 채널 참여/활동 전용 렌더러 ─────────────────────────────
+var CH_ACT_KEYS=['chMember','chPost','chComment','chReaction'];
+var CH_ACT_COLORS={'chMember':'#1a73e8','chPost':'#34a853','chComment':'#f4b740','chReaction':'#ea4335'};
+var CH_ACT_TYPE_RATIOS={
+  chMember: [.38,.28,.20,.14],
+  chPost:   [.35,.30,.22,.13],
+  chComment:[.36,.29,.21,.14],
+  chReaction:[.37,.28,.22,.13]
+};
+var CH_ACT_PERIOD={
+  chMember: [1280,1340,1420,1480,1560,1620,1580,1680,1720,1760,1800,1840],
+  chPost:   [2100,2240,2380,2520,2680,2840,2760,2920,3040,3120,3180,3247],
+  chComment:[5200,5480,5760,6040,6400,6800,6600,7000,7280,7560,7840,8124],
+  chReaction:[7800,8240,8720,9200,9800,10400,10100,10800,11200,11600,12000,12530]
+};
+var CH_TYPE_LABELS_ACT=['일반','과정','멘토링','전문가'];
+var CH_TYPE_COLORS_ACT=['#1a73e8','#34a853','#f4b740','#ea4335'];
+
+function compInnerChannelAct(c){
+  var keys=c.extras&&c.extras.length?c.extras:['chMember','chPost','chComment','chReaction'];
+  var view=c.view||'period';
+  var isL=(c.size==='l');
+  var CMP_BASIS={'당월':'전월 대비','전월':'직전월 대비','당해년도':'전년도 대비'};
+  var cmpBasis=CMP_BASIS[c.period]||'전월 대비';
+
+  // KPI 수치 영역
+  var kpiItems=keys.map(function(k,i){
+    var cmpVal=CMP[k]||''; var isUp=CMPUP[k];
+    var cmpHtml=cmpVal?('<span class="k-c'+(isUp?'':' down')+'">'+cmpVal+' '+cmpBasis+'</span>'):'';
+    return '<div class="kpi">'+
+      '<div class="k-l"><span class="emp-dot" style="background:'+CH_ACT_COLORS[k]+'"></span>'+SHORT[k]+'</div>'+
+      '<div class="k-vline"><span class="k-v">'+VAL[k]+'<span class="u">'+UNIT[k]+'</span></span>'+cmpHtml+'</div>'+
+    '</div>';
+  }).join('');
+  var kpiZone='<div class="kpibar emp-kpi">'+kpiItems+'</div>';
+
+  // 단일 수치
+  if(view==='none'){
+    var tileItems=keys.map(function(k,i){
+      var cmpVal=CMP[k]||''; var isUp=CMPUP[k];
+      return '<div class="emp-kpi-tile">'+
+        '<div class="emp-kpi-tile-lbl"><span class="emp-dot" style="background:'+CH_ACT_COLORS[k]+'"></span>'+SHORT[k]+'</div>'+
+        '<div class="emp-kpi-tile-val">'+VAL[k]+'<span class="emp-kpi-tile-unit">'+UNIT[k]+'</span></div>'+
+        (cmpVal?'<div class="emp-kpi-tile-cmp '+(isUp?'up':'down')+'">'+cmpVal+' '+cmpBasis+'</div>':'')+
+      '</div>';
+    }).join('');
+    var cols=isL?4:2;
+    return '<div class="c-col"><div class="emp-kpi-tiles" style="grid-template-columns:repeat('+cols+',1fr)">'+tileItems+'</div></div>';
+  }
+
+  // 채널유형별: 좌측 KPI 2×2 + 우측 막대 4열
+  if(view==='type'){
+    var allVals=[];
+    keys.forEach(function(k){
+      var base=parseFloat((VAL[k]||'0').replace(/,/g,''));
+      CH_ACT_TYPE_RATIOS[k].forEach(function(r){ allVals.push(Math.round(base*r)); });
+    });
+    var maxVal=Math.max.apply(null,allVals);
+    var bw=Math.min(18, Math.floor(52/Math.max(1,keys.length)));
+    var barH=isL?180:160;
+
+    // 좌측 KPI
+    var leftKpi='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:'+(isL?'200px':'160px')+';flex-shrink:0">'+
+      keys.map(function(k){
+        var cmpVal=CMP[k]||''; var isUp=CMPUP[k];
+        return '<div>'+
+          '<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">'+
+            '<span style="width:6px;height:6px;border-radius:50%;background:'+CH_ACT_COLORS[k]+';display:inline-block;flex-shrink:0"></span>'+
+            '<span style="font-size:11px;color:var(--muted)">'+SHORT[k]+'</span>'+
+          '</div>'+
+          '<div style="font-size:'+(isL?'18':'15')+'px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;line-height:1.2">'+VAL[k]+'<span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:1px">'+UNIT[k]+'</span></div>'+
+          (cmpVal?'<div style="font-size:10px;color:'+(isUp?'#1a73e8':'#e53935')+'">'+cmpVal+'</div>':'')+
+        '</div>';
+      }).join('')+
+    '</div>';
+
+    // 우측 막대
+    var barsInner='';
+    CH_TYPE_LABELS_ACT.forEach(function(lbl,ti){
+      barsInner+='<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'+
+        '<div style="display:flex;align-items:flex-end;gap:2px;height:'+(barH-24)+'px">'+
+        keys.map(function(k){
+          var base=parseFloat((VAL[k]||'0').replace(/,/g,''));
+          var v=Math.round(base*CH_ACT_TYPE_RATIOS[k][ti]);
+          var hh=Math.round(v/maxVal*100);
+          return '<div style="width:'+bw+'px;height:'+hh+'%;background:'+CH_ACT_COLORS[k]+';border-radius:3px 3px 0 0;min-height:3px;cursor:default;flex-shrink:0" class="emp-bar-stack" data-tip="'+lbl+' '+SHORT[k]+' · '+v.toLocaleString()+UNIT[k]+'"></div>';
+        }).join('')+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--muted);white-space:nowrap">'+lbl+'</div>'+
+      '</div>';
+    });
+
+    var legend='<div style="display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:8px">'+
+      keys.map(function(k){
+        return '<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)">'+
+          '<span style="width:7px;height:7px;border-radius:50%;background:'+CH_ACT_COLORS[k]+';display:inline-block"></span>'+SHORT[k]+'</span>';
+      }).join('')+
+    '</div>';
+
+    return '<div class="c-col" style="height:100%">'+
+      '<div style="display:flex;gap:20px;align-items:flex-start;height:100%">'+
+        '<div style="display:flex;align-items:center;height:100%">'+leftKpi+'</div>'+
+        '<div style="flex:1;min-width:0;border-left:1px solid var(--line);padding-left:20px;display:flex;flex-direction:column;height:100%">'+
+          '<div class="c-graph-head">채널유형별</div>'+
+          '<div style="display:flex;align-items:flex-end;gap:0;flex:1">'+barsInner+'</div>'+
+          legend+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  // 월별 추이: B안 — 참여자 수(선) + 게시글·댓글·반응(막대) 이중축
+  var lineKeys=['chMember'];
+  var barKeys=['chPost','chComment','chReaction'];
+  var lineSeries=keys.filter(function(k){ return lineKeys.indexOf(k)>=0; });
+  var barSeries=keys.filter(function(k){ return barKeys.indexOf(k)>=0; });
+
+  var labels=['6월','7월','8월','9월','10월','11월','12월','1월','2월','3월','4월','5월'];
+  var n=labels.length;
+  var colSpacing=92/(n-1);
+  var barW=Math.min(colSpacing*0.55/Math.max(1,barSeries.length), 3.0);
+  var graphH=128;
+
+  // 각 시리즈 최대값 (막대용/선용 별도 스케일)
+  var barMax=1, lineMax=1;
+  barSeries.forEach(function(k){
+    var m=Math.max.apply(null,CH_ACT_PERIOD[k]);
+    if(m>barMax) barMax=m;
+  });
+  lineSeries.forEach(function(k){
+    var m=Math.max.apply(null,CH_ACT_PERIOD[k]);
+    if(m>lineMax) lineMax=m;
+  });
+
+  // 막대
+  var htmlBars='';
+  barSeries.forEach(function(k,si){
+    CH_ACT_PERIOD[k].forEach(function(v,i){
+      var leftPct=4+i*colSpacing+(si-(barSeries.length-1)/2)*(barW+0.8);
+      var barHpx=Math.max(2,Math.round(v/barMax*graphH));
+      htmlBars+='<div class="emp-bar-div" style="position:absolute;left:'+leftPct.toFixed(1)+'%;bottom:22px;width:'+barW+'%;height:'+barHpx+'px;background:'+CH_ACT_COLORS[k]+';opacity:0.75;border-radius:2px 2px 0 0;cursor:default;z-index:1" data-tip="'+labels[i]+' '+SHORT[k]+' · '+v.toLocaleString()+UNIT[k]+'"></div>';
+    });
+  });
+
+  // 선
+  var svgLines='', lineOverlays='';
+  lineSeries.forEach(function(k){
+    var pts=CH_ACT_PERIOD[k].map(function(v,i){
+      return [+(4+i*colSpacing).toFixed(2), +(14+(1-v/lineMax)*64).toFixed(2)];
+    });
+    var poly=pts.map(function(p){return p[0]+','+p[1];}).join(' ');
+    svgLines+='<polyline points="'+poly+'" fill="none" stroke="'+CH_ACT_COLORS[k]+'" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+    pts.forEach(function(p,i){
+      var isLast=(i===pts.length-1);
+      lineOverlays+='<div class="lp emp-lp" style="left:'+p[0]+'%;top:'+p[1]+'%" data-tip="'+labels[i]+' '+SHORT[k]+' · '+CH_ACT_PERIOD[k][i].toLocaleString()+UNIT[k]+'">'+
+        '<span class="lp-dot'+(isLast?' lp-dot-last':'')+'" style="background:'+CH_ACT_COLORS[k]+';border-color:'+CH_ACT_COLORS[k]+'"></span>'+
+        (isLast?'<span class="lp-last" style="color:'+CH_ACT_COLORS[k]+'">'+CH_ACT_PERIOD[k][i].toLocaleString()+UNIT[k]+'</span>':'')+
+      '</div>';
+    });
+  });
+
+  var caps=labels.map(function(l,i){return '<span class="lp-cap" style="left:'+(4+i*colSpacing).toFixed(1)+'%">'+l+'</span>';}).join('');
+  var legend2='<div class="emp-legend">'+
+    keys.map(function(k){
+      var isLine=lineKeys.indexOf(k)>=0;
+      return '<span class="emp-leg">'+(isLine
+        ?'<span style="display:inline-block;width:16px;height:2px;background:'+CH_ACT_COLORS[k]+';vertical-align:middle;margin-right:4px;border-radius:1px"></span>'
+        :'<span class="emp-dot" style="background:'+CH_ACT_COLORS[k]+';opacity:.75"></span>'
+      )+SHORT[k]+'</span>';
+    }).join('')+
+  '</div>';
+
+  var gz='<div class="c-graph-head">월별 추이</div>'+
+    '<div class="line-wrap"><div class="line-box emp-line-box" style="position:relative">'+
+      htmlBars+
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="none" class="line-svg" style="pointer-events:none;z-index:2">'+svgLines+'</svg>'+
+      '<div class="line-overlay" style="z-index:2">'+lineOverlays+'</div>'+
+      '<div class="line-caps">'+caps+'</div>'+
+    '</div></div>'+legend2;
+
+  return '<div class="c-col">'+kpiZone+'<div class="c-graph-l">'+gz+'</div></div>';
+}
+
 function compInner(c){
   // 임직원 현황·접속 현황 → 멀티 시리즈 그래프
-  var EMP_DOMAINS={employee:true, access:true};
+  var EMP_DOMAINS={employee:true, access:true, channel:true, channelAct:true};
+  if(c.domain==='channel') return compInnerChannel(c);
+  if(c.domain==='channelAct') return compInnerChannelAct(c);
   if(EMP_DOMAINS[c.domain]){
     return compInnerEmp(c);
   }
@@ -11753,7 +12217,7 @@ function renderGrid(){
       '당해년도':_y+'년 누적',
       '전년도':(_y-1)+'년 누적'
     };
-    var baseDate=(c.domain==='apply')?'신청일':(c.domain==='employee')?'등록일':(c.domain==='access')?'로그인일':'학습시작일';
+    var baseDate=(c.domain==='apply')?'신청일':(c.domain==='employee')?'등록일':(c.domain==='access')?'로그인일':(c.domain==='channel')?'채널 등록일':(c.domain==='channelAct')?'활동 발생일':'학습시작일';
     var basisLabel='<span class="c-basis">'+(PERIOD_LABEL[c.period]||(_m+'월 기준'))+' · '+baseDate+' 기준</span>';
     var detail='<span class="c-detail">›</span>';
     var titleIcon=TITLE_ICON[c.domain]?'<span class="c-title-ico">'+TITLE_ICON[c.domain]+'</span>':'';
@@ -11955,7 +12419,7 @@ function refreshExtraLimit(){
   var on=document.querySelectorAll('#extraChips .chip.on').length;
   var hint=document.getElementById('extraHint');
   // 임직원 현황·접속 현황은 선택 가능 지표가 적으므로 힌트 텍스트 숨김
-  var isEmpDomain=(curDomain==='employee'||curDomain==='access');
+  var isEmpDomain=(curDomain==='employee'||curDomain==='access'||curDomain==='channel'||curDomain==='channelAct');
   if(hint) hint.textContent=isEmpDomain?'':('· 최대 '+max+'개 ('+on+'/'+max+')');
   // 초과분 자동 해제
   if(on>max){ var chips=document.querySelectorAll('#extraChips .chip.on'); for(var i=max;i<chips.length;i++) chips[i].classList.remove('on'); }
@@ -11963,28 +12427,31 @@ function refreshExtraLimit(){
 function refreshViewOptions(){
   var sel=document.getElementById('mView');
   var typeOpt=sel.querySelector('option[value="type"]');
-  var isEmpDomain=(curDomain==='employee'||curDomain==='access');
+  var isEmpDomain=(curDomain==='employee'||curDomain==='access'||curDomain==='channel'||curDomain==='channelAct');
   var isEmployee=(curDomain==='employee');
-  // 과정유형별: 임직원/접속 현황에서 숨김
-  if(typeOpt){ typeOpt.disabled=isEmpDomain; typeOpt.hidden=isEmpDomain; }
-  if(isEmpDomain && sel.value==='type') sel.value='period';
-  // 임직원 현황 + 월별 추이: 기간을 '당해년도'로 고정
-  var periodChips=document.querySelectorAll('.chips[data-single] .chip');
-  if(isEmployee && sel.value==='period'){
-    periodChips.forEach(function(ch){
-      var isYear=(ch.textContent==='당해년도');
-      ch.classList.toggle('on', isYear);
-      ch.classList.toggle('locked', !isYear);
-      ch.style.pointerEvents=isYear?'':'none';
-      ch.style.opacity=isYear?'':'0.35';
-    });
-  } else {
-    periodChips.forEach(function(ch){
-      ch.classList.remove('locked');
-      ch.style.pointerEvents='';
-      ch.style.opacity='';
-    });
+  // 과정유형별: 임직원/접속 현황에서 숨김, 채널 현황에서는 '채널유형별'로 텍스트 변경
+  var isChannelDomain=(curDomain==='channel'||curDomain==='channelAct');
+  if(typeOpt){
+    typeOpt.disabled=(isEmpDomain && !isChannelDomain);
+    typeOpt.hidden=(isEmpDomain && !isChannelDomain);
+    typeOpt.textContent=isChannelDomain?'채널유형별':'과정유형별';
   }
+  if(isEmpDomain && !isChannelDomain && sel.value==='type') sel.value='period';
+  // channel 도메인: 부서별/직급별/회사별 숨김
+  ['dept','position','company'].forEach(function(v){
+    var opt=sel.querySelector('option[value="'+v+'"]');
+    if(!opt) return;
+    opt.disabled=isChannelDomain;
+    opt.hidden=isChannelDomain;
+  });
+  if(isChannelDomain && ['dept','position','company'].indexOf(sel.value)>=0) sel.value='period';
+  // 기간 잠금 없음 - 전월/당월/당해년도 모두 선택 가능
+  var periodChips=document.querySelectorAll('.chips[data-single] .chip');
+  periodChips.forEach(function(ch){
+    ch.classList.remove('locked');
+    ch.style.pointerEvents='';
+    ch.style.opacity='';
+  });
   refreshAuto();
 }
 document.querySelectorAll('#domainChips .chip').forEach(function(ch){ ch.addEventListener('click',function(){ fillDomain(ch.dataset.d); }); });
